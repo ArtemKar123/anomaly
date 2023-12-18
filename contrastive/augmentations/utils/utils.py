@@ -43,6 +43,54 @@ def IoUfrom2bboxes(boxA, boxB):
     return iou
 
 
+def crop_mask(mask):
+    """
+    Crops mask by non-zero edge rows/cols
+    :param mask:
+    :return:
+    """
+    h, w = mask.shape[:2]
+    min_x, min_y, max_x, max_y = h - 1, w - 1, 0, 0
+    for y in range(h):
+        if np.max(mask[y, :]) > 0:
+            min_y = min(min_y, y)
+            max_y = max(max_y, y)
+
+    for x in range(w):
+        if np.max(mask[:, x]) > 0:
+            min_x = min(min_x, x)
+            max_x = max(max_x, x)
+
+    return mask[min_y:max_y, min_x:max_x]
+
+
+def angle_and_distance(x1, x2, y1, y2):
+    """
+    Calculates angle relative to Ox and distance between two points
+    :return: angle, distance
+    """
+    delta_x = abs(x1 - x2)
+    delta_y = abs(y1 - y2)
+
+    angle_in_radians = np.arctan2(delta_y, delta_x)
+    return np.degrees(angle_in_radians), int(np.sqrt(delta_x ** 2 + delta_y ** 2))
+
+
+def rotate_image(img, angle):
+    """
+    Rotates the image without cropping
+    :param img:
+    :param angle:
+    :return:
+    """
+    size_reverse = np.array(img.shape[1::-1])  # swap x with y
+    M = cv2.getRotationMatrix2D(tuple(size_reverse / 2.), angle, 1.)
+    MM = np.absolute(M[:, :2])
+    size_new = MM @ size_reverse
+    M[:, -1] += (size_new - size_reverse) / 2.
+    return cv2.warpAffine(img, M, tuple(size_new.astype(int)))
+
+
 def crop_face(img, landmark=None, bbox=None, margin=False, crop_by_bbox=True, abs_coord=False, only_img=False, ):
     assert landmark is not None or bbox is not None
 
