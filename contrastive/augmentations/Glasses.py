@@ -48,7 +48,7 @@ class GlassAugmentations:
             new_h = new_w * mask.shape[0] // mask.shape[1]
 
             mask = cv2.resize(mask, (new_w, new_h))
-            mask = rotate_image(mask, -1.2 * angle)
+            mask = rotate_image(mask, -random.uniform(1, 1.2) * angle)
 
             mh, mw = mask.shape[:2]
             center_x = (x2 + x1) // 2
@@ -68,8 +68,8 @@ class GlassAugmentations:
 
 if __name__ == '__main__':
     augmentations = GlassAugmentations()
-    image = cv2.imread('sample-rotated.png')
-    image = cv2.resize(image, (512, 512))
+    image = cv2.imread('sample.png')
+    image = cv2.resize(image, (178, 178))
 
     augmented_images = augmentations.augment(image, 200)
     # imageio.mimsave('rotated.gif', [cv2.cvtColor(x, cv2.COLOR_BGR2RGB) for x in augmented_images],

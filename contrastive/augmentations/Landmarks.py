@@ -10,7 +10,7 @@ from utils.utils import IoUfrom2bboxes, crop_face
 class Landmarks:
     def __init__(self):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.retina_model = get_retina_model("resnet50_2020-07-20", max_size=512, device=self.device)
+        self.retina_model = get_retina_model("resnet50_2020-07-20", max_size=512, device=str(self.device))
         self.face_detector = dlib.get_frontal_face_detector()
         self.face_predictor = dlib.shape_predictor('./weights/shape_predictor_81_face_landmarks.dat')
 
