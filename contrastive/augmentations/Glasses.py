@@ -26,12 +26,13 @@ class GlassAugmentations:
                 mask = cv2.imread(os.path.join("filtered-glasses", filename), cv2.IMREAD_UNCHANGED)
                 self.glasses.append(crop_mask(mask))
 
-    def augment(self, original_image, n=1):
+    def augment(self, original_image, bbox=None, n=1):
         """
         :param original_image: BGR image
         :return: list of images with added glasses
         """
-        bbox = self.landmarks_detector.retina_landmarks(original_image.copy())[0]
+        if bbox is None:
+            bbox = self.landmarks_detector.retina_landmarks(original_image.copy())[0]
 
         x1, y1 = [int(t) for t in bbox[2]]
         x2, y2 = [int(t) for t in bbox[3]]
