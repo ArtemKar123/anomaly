@@ -5,6 +5,7 @@ import cv2
 import os
 import random
 import imageio
+import albumentations as A
 
 
 class GlassAugmentations:
@@ -16,6 +17,12 @@ class GlassAugmentations:
         self.landmarks_detector = Landmarks()
         self.glasses = []
         self.init_glasses()
+        self.mask_augmentation = A.Compose([
+            A.RGBShift(r_shift_limit=100,
+                       g_shift_limit=100,
+                       b_shift_limit=100, ),
+            A.RandomBrightnessContrast(brightness_limit=(-0.3, 0.2)),
+        ])
 
     def init_glasses(self):
         """
@@ -45,7 +52,8 @@ class GlassAugmentations:
         for i in range(n):
             image = original_image.copy()
             mask = random.choice(self.glasses)
-            new_w = int(2.5 * d)
+
+            new_w = int(random.uniform(2.3, 2.7) * d)
             new_h = new_w * mask.shape[0] // mask.shape[1]
 
             mask = cv2.resize(mask, (new_w, new_h))
@@ -60,19 +68,21 @@ class GlassAugmentations:
 
             overlay_mask = np.squeeze(mask[:, :, 3:])
             overlay_mask_3D = np.repeat(overlay_mask[:, :, np.newaxis], 3, axis=2)
-            region = np.where(overlay_mask_3D, mask[:, :, :3], region)
+
+            region = np.where(overlay_mask_3D, self.mask_augmentation(image=mask[:, :, :3])['image'], region)
             image[center_y - mh // 2:center_y + mh // 2 + mh % 2,
             center_x - mw // 2:center_x + mw // 2 + mw % 2] = region
 
             res.append(image)
         return res
 
+
 if __name__ == '__main__':
     augmentations = GlassAugmentations()
     image = cv2.imread('sample.png')
     image = cv2.resize(image, (178, 178))
 
-    augmented_images = augmentations.augment(image, 200)
+    augmented_images = augmentations.augment(image, n=200)
     # imageio.mimsave('rotated.gif', [cv2.cvtColor(x, cv2.COLOR_BGR2RGB) for x in augmented_images],
     #                 duration=1000 // 10)
 
